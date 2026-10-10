@@ -1,0 +1,7 @@
+@library.management.api_HostAddress = https://localhost:7270
+
+
+
+GET {{library.management.api_HostAddress}}/api/country/GetAll
+
+###
