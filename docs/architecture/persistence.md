@@ -11,3 +11,5 @@ Application migrations belong to `library.management.infrastructure/Migrations` 
 Known observations: the initial Identity migration contains default and renamed role-table artifacts; Country's database-generated ID may be unavailable to the audit interceptor before save; and audit query pagination leaks EF work into Application.
 
 Role names are runtime data seeded through ASP.NET Core Identity's `RoleManager<IdentityRole>` into its active `AspNetRoles` mapping. Registration and role changes update `IdentityUserRoles` through `UserManager<ApplicationUser>` in an Identity transaction. No schema migration was required for the three roles.
+
+`BookLoan` is application-owned and records `BookId`, `UserId`, borrowing time, and optional return time. `AddBookLoans` creates a Book FK, a migration-only FK to Identity's `IdentityUsers`, and a filtered unique index allowing one open loan per Book. The two contexts must target the same database, and Identity's user table must exist before applying the loan migration. The design-time application context factory scaffolds migrations without starting the API or seeding roles. No migration is applied during generation.
