@@ -10,6 +10,16 @@ CountryController -> custom IMediator -> command/query handler
 
 Mutations save through `IUnitOfWork`; reads use no tracking, include active-state filtering in handlers, and attempt explicit view audits. The EF interceptor writes mutation audits with the application transaction.
 
+## Book
+
+```text
+BooksController -> custom IMediator -> Book command/query handler
+-> IBookRepository -> BookRepository / GenericRepository
+-> ApplicationDbContext -> SQL Server
+```
+
+Reads filter active and non-deleted books and attempt explicit view audits. Update and soft-delete use tracked entities; mutations save through `IUnitOfWork` and are audited by the EF interceptor.
+
 ## Account and Authentication
 
 ```text

@@ -21,6 +21,7 @@ The actual graph is `API -> Application, Identity, Infrastructure`; `Infrastruct
 - [Authentication](docs/modules/authentication.md): `library.management.application/Features/AuthenticationFeatures`; read its `AGENTS.md`.
 - [API-client authentication](docs/modules/api-client-authentication.md): `library.management.application/Features/ApiKeyAuthenticationFeatures`; read its `AGENTS.md`.
 - [Country](docs/modules/country.md): `library.management.application/Features/CountryFeatures`; read its `AGENTS.md`.
+- [Book](docs/modules/book.md): `library.management.application/Features/BookFeatures`.
 - [Audit](docs/modules/audit.md): `library.management.application/Features/AuditLogFeatures`; read its `AGENTS.md` when that module is affected.
 
 Use Country as the simple repository/unit-of-work pattern, Account and Authentication as Identity-service patterns, and API-client administration only as its documented direct-service variation. The audit query's `IQueryable`/EF execution in Application is an exception, not a default.
