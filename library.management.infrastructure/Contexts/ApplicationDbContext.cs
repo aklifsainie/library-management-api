@@ -38,6 +38,7 @@ namespace library.management.infrastructure.Contexts
 
         public DbSet<Country> Country => Set<Country>();
         public DbSet<Book> Books => Set<Book>();
+        public DbSet<BookLoan> BookLoans => Set<BookLoan>();
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

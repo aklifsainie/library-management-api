@@ -2,7 +2,7 @@
 
 ## Scope and source of truth
 
-This is a .NET 8 ASP.NET Core Web API template for accounts, authentication, API-client keys, Country reference data, and auditing. Source code, project references, migrations, tests, and runtime configuration are authoritative; this guide routes work to the relevant evidence. Do not redesign the existing layered, feature-folder structure during unrelated work.
+This is a .NET 8 ASP.NET Core Web API template for accounts, authentication, API-client keys, Country reference data, books, lending, and auditing. Source code, project references, migrations, tests, and runtime configuration are authoritative; this guide routes work to the relevant evidence. Do not redesign the existing layered, feature-folder structure during unrelated work.
 
 ## Solution map and dependencies
 
@@ -22,6 +22,7 @@ The actual graph is `API -> Application, Identity, Infrastructure`; `Infrastruct
 - [API-client authentication](docs/modules/api-client-authentication.md): `library.management.application/Features/ApiKeyAuthenticationFeatures`; read its `AGENTS.md`.
 - [Country](docs/modules/country.md): `library.management.application/Features/CountryFeatures`; read its `AGENTS.md`.
 - [Book](docs/modules/book.md): `library.management.application/Features/BookFeatures`.
+- [Book loans](docs/modules/loan.md): `library.management.application/Features/LoanFeatures`.
 - [Audit](docs/modules/audit.md): `library.management.application/Features/AuditLogFeatures`; read its `AGENTS.md` when that module is affected.
 
 Use Country as the simple repository/unit-of-work pattern, Account and Authentication as Identity-service patterns, and API-client administration only as its documented direct-service variation. The audit query's `IQueryable`/EF execution in Application is an exception, not a default.
