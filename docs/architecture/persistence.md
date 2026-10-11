@@ -9,3 +9,5 @@ No global EF query filter is configured. Soft-deletion behavior is enforced by r
 Application migrations belong to `library.management.infrastructure/Migrations` with `ApplicationDbContext`; Identity migrations belong to `library.management.identity/Migrations` with `IdentityContext`. Generate migrations only through the repository migration skill and an approved migration blueprint. Never apply one without separately explicit authority.
 
 Known observations: the initial Identity migration contains default and renamed role-table artifacts; Country's database-generated ID may be unavailable to the audit interceptor before save; and audit query pagination leaks EF work into Application.
+
+Role names are runtime data seeded through ASP.NET Core Identity's `RoleManager<IdentityRole>` into its active `AspNetRoles` mapping. Registration and role changes update `IdentityUserRoles` through `UserManager<ApplicationUser>` in an Identity transaction. No schema migration was required for the three roles.

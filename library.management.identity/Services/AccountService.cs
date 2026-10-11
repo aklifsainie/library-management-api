@@ -8,6 +8,7 @@ using FluentResults;
 using library.management.identity.Interfaces;
 using library.management.identity.Models.Entities;
 using library.management.identity.Models.DTOs;
+using library.management.identity.Contexts;
 
 
 namespace library.management.identity.Services
@@ -17,6 +18,8 @@ namespace library.management.identity.Services
     public class AccountService : IAccountService
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IdentityContext _identityContext;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IConfiguration _configuration;
@@ -24,12 +27,16 @@ namespace library.management.identity.Services
 
         public AccountService(
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            IdentityContext identityContext,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             IConfiguration configuration,
             ILogger<AccountService> logger)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
+            _identityContext = identityContext;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _configuration = configuration;
@@ -37,7 +44,7 @@ namespace library.management.identity.Services
         }
 
         // 1. Register new user (no password yet)
-        public async Task<Result<string>> RegisterAsync(string email, string userName, string callbackBaseUrl)
+        public async Task<Result<string>> RegisterAsync(string email, string userName, string callbackBaseUrl, CancellationToken cancellationToken)
         {
             try
             {
@@ -58,6 +65,7 @@ namespace library.management.identity.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
+                await using var transaction = await _identityContext.Database.BeginTransactionAsync(cancellationToken);
                 var createResult = await _userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
                 {
@@ -65,6 +73,16 @@ namespace library.management.identity.Services
                     var errors = string.Join(';', createResult.Errors.Select(e => e.Description));
                     return Result.Fail<string>(errors);
                 }
+
+                var roleResult = await _userManager.AddToRoleAsync(user, UserRoles.Member);
+                if (!roleResult.Succeeded)
+                {
+                    _logger.LogError("Could not assign Member role to new user {UserId}: {Errors}",
+                        user.Id, string.Join(';', roleResult.Errors.Select(error => error.Description)));
+                    return Result.Fail<string>("Registration could not be completed.");
+                }
+
+                await transaction.CommitAsync(cancellationToken);
 
                 // Send confirmation email
                 var emailSendResult = await SendEmailConfirmationAsync(user, callbackBaseUrl);
@@ -76,11 +94,61 @@ namespace library.management.identity.Services
 
                 return Result.Ok(user.Id.ToString());
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during RegisterAsync");
                 return Result.Fail<string>("An unexpected error occurred while registering user.");
             }
+        }
+
+        public async Task<Result> SetRoleAsync(string actorUserId, string targetUserId, string role, CancellationToken cancellationToken)
+        {
+            if (role != UserRoles.Member && role != UserRoles.Admin && role != UserRoles.Superadmin)
+                return Result.Fail("Invalid role.");
+
+            if (actorUserId == targetUserId)
+                return Result.Fail("You cannot change your own role.");
+
+            var actor = await _userManager.FindByIdAsync(actorUserId);
+            if (actor == null || actor.IsDeleted || !actor.IsActive ||
+                !await _userManager.IsInRoleAsync(actor, UserRoles.Superadmin))
+                return Result.Fail("Only an active Superadmin can change roles.");
+
+            var target = await _userManager.FindByIdAsync(targetUserId);
+            if (target == null || target.IsDeleted)
+                return Result.Fail("User not found.");
+
+            if ((role == UserRoles.Admin || role == UserRoles.Superadmin) &&
+                (!target.IsActive || !target.EmailConfirmed || !await _userManager.HasPasswordAsync(target)))
+                return Result.Fail("Privileged roles require an active account with a confirmed email and password.");
+
+            if (!await _roleManager.RoleExistsAsync(role))
+                return Result.Fail("Role is unavailable.");
+
+            await using var transaction = await _identityContext.Database.BeginTransactionAsync(cancellationToken);
+            var currentRoles = await _userManager.GetRolesAsync(target);
+            if (currentRoles.Count == 1 && currentRoles[0] == role)
+                return Result.Ok();
+
+            if (currentRoles.Count != 0)
+            {
+                var removeResult = await _userManager.RemoveFromRolesAsync(target, currentRoles);
+                if (!removeResult.Succeeded)
+                    return Result.Fail("Could not remove the user's current role.");
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(target, role);
+            if (!addResult.Succeeded)
+                return Result.Fail("Could not assign the requested role.");
+
+            await transaction.CommitAsync(cancellationToken);
+            _logger.LogInformation("User {ActorUserId} set role {Role} for user {TargetUserId}",
+                actorUserId, role, targetUserId);
+            return Result.Ok();
         }
 
         // 2. Send email for verification

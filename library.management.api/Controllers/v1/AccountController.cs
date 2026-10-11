@@ -3,6 +3,7 @@ using library.management.application.Features.AccountFeatures.Queries;
 using library.management.application.Shared;
 using library.management.application.Shared.Mediator;
 using library.management.domain.Models.ViewModels.AccountVM;
+using library.management.identity;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.Data;
@@ -64,6 +65,24 @@ namespace library.management.api.Controllers.v1
             }
 
             return NoContent(); //NoContent return 204
+        }
+
+        /// <summary>Set a user's single library role. Only a Superadmin can use this endpoint.</summary>
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Superadmin)]
+        [HttpPut("{userId}/role")]
+        [EnableRateLimiting("ApiPolicy")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> SetRole(string userId, [FromBody] SetUserRoleCommand command, CancellationToken cancellationToken)
+        {
+            command.UserId = userId;
+            var result = await _mediator.Send(command, cancellationToken);
+            if (result.IsFailed)
+                return BadRequest(new { message = result.Errors.First().Message });
+
+            return NoContent();
         }
 
         /// <summary>

@@ -24,7 +24,7 @@ namespace library.management.api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -98,6 +98,13 @@ namespace library.management.api
             });
 
             var app = builder.Build();
+            await app.Services.SeedRolesAsync();
+
+            if (args.Length == 2 && args[0] == "--bootstrap-superadmin")
+            {
+                await app.Services.BootstrapFirstSuperadminAsync(args[1]);
+                return;
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -119,7 +126,7 @@ namespace library.management.api
             app.MapControllers();
 
 
-            app.Run();
+            await app.RunAsync();
 
         }
 
@@ -295,6 +302,12 @@ namespace library.management.api
                             return;
                         }
 
+                        if (!await RoleClaimsValidator.MatchesCurrentRolesAsync(context.Principal!, user, userManager))
+                        {
+                            context.Fail("User roles have changed");
+                            return;
+                        }
+
                         // Optional hardening
                         if (user.LockoutEnabled && user.LockoutEnd > DateTimeOffset.UtcNow)
                         {
@@ -349,5 +362,3 @@ namespace library.management.api
     } 
 
 }
-
-            
