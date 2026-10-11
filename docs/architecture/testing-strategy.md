@@ -1,6 +1,6 @@
 # Testing Strategy
 
-`library.management.test` uses xUnit, Moq, FluentAssertions, and coverlet. The committed suite contains two `GetAllCountryQueryHandler` unit tests. They establish handler success/empty behavior, projection/order, and selected collaborator calls; repository soft-delete behavior is simulated by the mock, not verified against EF.
+`library.management.test` uses xUnit, Moq, FluentAssertions, and coverlet. It has Country, Book, and user-role unit tests. The Country tests establish handler success/empty behavior, projection/order, and selected collaborator calls; repository soft-delete behavior is simulated by the mock, not verified against EF. Book handler tests likewise do not verify EF mapping or database behavior.
 
 There are no committed integration, controller, authentication, authorization, EF/database, or migration tests. Choose the test layer based on the change rather than cloning the existing mock pattern. Identity, API-key, authorization, transaction, query-filter, audit, and migration changes often need more than a handler unit test.
 
