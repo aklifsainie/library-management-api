@@ -34,7 +34,7 @@ namespace library.management.application.Features.AccountFeatures.Commands
         public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Registering user {Email}", request.Email);
-            var result = await _accountService.RegisterAsync(request.Email, request.UserName, request.CallbackBaseUrl);
+            var result = await _accountService.RegisterAsync(request.Email, request.UserName, request.CallbackBaseUrl, cancellationToken);
             if (!result.IsSuccess)
             {
                 _logger.LogWarning($"Failed to register user {request.Email}: {result.Errors.FirstOrDefault()?.Message}");

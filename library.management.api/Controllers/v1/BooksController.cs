@@ -1,8 +1,8 @@
-using library.management.api.ApiClientAuthentication;
 using library.management.application.Features.BookFeatures.Commands;
 using library.management.application.Shared;
 using library.management.application.Shared.Mediator;
 using library.management.domain.Models.ViewModels.BookVM;
+using library.management.identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -11,7 +11,7 @@ namespace library.management.api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/books")]
-[Authorize(AuthenticationSchemes = "Bearer," + ApiKeyAuthenticationDefault.AuthenticationScheme)]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Admin)]
 [EnableRateLimiting("ApiPolicy")]
 public sealed class BooksController : BaseApiController
 {

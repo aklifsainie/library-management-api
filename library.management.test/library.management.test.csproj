@@ -24,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\library.management.application\library.management.application.csproj" />
     <ProjectReference Include="..\library.management.domain\library.management.domain.csproj" />
+    <ProjectReference Include="..\library.management.identity\library.management.identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>
