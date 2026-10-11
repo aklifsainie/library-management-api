@@ -23,6 +23,7 @@ namespace library.management.identity
         {
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<ILoanUserService, LoanUserService>();
             services.AddScoped<IdentityUnitOfWork>();
            
 

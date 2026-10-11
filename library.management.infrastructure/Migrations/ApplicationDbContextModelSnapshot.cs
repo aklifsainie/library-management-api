@@ -325,6 +325,62 @@ namespace library.management.infrastructure.Migrations
                     b.ToTable("Book", (string)null);
                 });
 
+            modelBuilder.Entity("library.management.domain.Models.Entities.BookLoan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BorrowedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RegisterBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("ReturnedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_BookLoan_OpenBook")
+                        .HasFilter("[ReturnedAtUtc] IS NULL");
+
+                    b.HasIndex("UserId", "BorrowedAtUtc");
+
+                    b.ToTable("BookLoan", (string)null);
+                });
+
             modelBuilder.Entity("library.management.domain.Models.Entities.Country", b =>
                 {
                     b.Property<int>("Id")
@@ -424,6 +480,17 @@ namespace library.management.infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ApiClient");
+                });
+
+            modelBuilder.Entity("library.management.domain.Models.Entities.BookLoan", b =>
+                {
+                    b.HasOne("library.management.domain.Models.Entities.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Book");
                 });
 
             modelBuilder.Entity("library.management.domain.Models.Entities.ApiKey.ApiClient", b =>

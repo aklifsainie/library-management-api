@@ -40,3 +40,7 @@ AuditLogController -> custom mediator -> GetAuditLogQueryHandler
 ```
 
 The first is a direct-service administrative variation. The second couples Application to EF query execution. Preserve them as explicit exceptions rather than copying either flow by default.
+
+## Loan flow
+
+`POST api/v1/loans` authenticates a Member, derives `UserId` from the bearer token, checks Identity account status, loads an active Book, and inserts an open `BookLoan`. A filtered unique SQL index rejects racing borrowers. `GET` requests filter member history by `UserId` and page in the repository. `POST api/v1/loans/{id}/return` checks ownership for Members and records the return time; Admins may return any loan. Reads explicitly write View audit entries, while writes use the EF audit interceptor. See [loan module](../modules/loan.md).
