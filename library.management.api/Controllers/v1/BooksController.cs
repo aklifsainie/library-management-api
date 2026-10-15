@@ -13,7 +13,7 @@ namespace library.management.api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/books")]
-[Authorize(AuthenticationSchemes = "Bearer")]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Officer + "," + UserRoles.Admin)]
 [EnableRateLimiting("ApiPolicy")]
 public sealed class BooksController : BaseApiController
 {

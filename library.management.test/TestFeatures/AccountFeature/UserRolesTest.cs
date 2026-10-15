@@ -18,7 +18,7 @@ public sealed class UserRolesTest
         var user = new ApplicationUser { Id = "user-1" };
         var manager = CreateUserManager();
         manager.Setup(value => value.GetRolesAsync(user)).ReturnsAsync([UserRoles.Admin]);
-        var tokenPrincipal = PrincipalWithRole(UserRoles.Member);
+        var tokenPrincipal = PrincipalWithRole(UserRoles.Officer);
 
         Assert.False(await RoleClaimsValidator.MatchesCurrentRolesAsync(tokenPrincipal, user, manager.Object));
     }
@@ -32,6 +32,16 @@ public sealed class UserRolesTest
         var tokenPrincipal = PrincipalWithRole(UserRoles.Admin);
 
         Assert.True(await RoleClaimsValidator.MatchesCurrentRolesAsync(tokenPrincipal, user, manager.Object));
+    }
+
+    [Fact]
+    public async Task RoleClaimsValidator_RejectsRetiredMemberRole()
+    {
+        var user = new ApplicationUser { Id = "legacy-1" };
+        var manager = CreateUserManager();
+        manager.Setup(value => value.GetRolesAsync(user)).ReturnsAsync(["Member"]);
+
+        Assert.False(await RoleClaimsValidator.MatchesCurrentRolesAsync(PrincipalWithRole("Member"), user, manager.Object));
     }
 
     [Fact]

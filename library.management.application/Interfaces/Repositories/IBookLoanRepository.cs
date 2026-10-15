@@ -6,7 +6,8 @@ namespace library.management.application.Interfaces.Repositories;
 public interface IBookLoanRepository
 {
     Task<bool> HasOpenLoanAsync(int bookId, CancellationToken cancellationToken);
+    Task<bool> HasOpenLoanForMemberAsync(int memberId, CancellationToken cancellationToken);
     Task<bool> TryBorrowAsync(BookLoan loan, CancellationToken cancellationToken);
     Task<BookLoan?> GetByIdAsync(int id, bool asNoTracking, CancellationToken cancellationToken);
-    Task<PaginatedResult<BookLoan>> GetPageAsync(string? userId, int pageNumber, int pageSize, CancellationToken cancellationToken);
+    Task<PaginatedResult<BookLoan>> GetPageAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
 }

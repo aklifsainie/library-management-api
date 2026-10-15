@@ -35,7 +35,8 @@ namespace library.management.api.Controllers.v1
         /// <response code="204">User registered successfully with no response contents</response>
         /// <response code="400">Invalid registration request</response>
         /// <response code="500">Unexpected internal server error</response>
-        [HttpPost("register")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Superadmin)]
+        [HttpPost("staff")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -131,7 +132,7 @@ namespace library.management.api.Controllers.v1
         /// Set user password
         /// </summary>
         /// <remarks>
-        /// Allows the user to set a password after email verification.
+        /// Requires the email confirmation token as proof of staff invitation.
         /// </remarks>
         /// <param name="command">Password setup data</param>
         /// <response code="204">Password set successfully with no response contents</response>
@@ -414,8 +415,8 @@ namespace library.management.api.Controllers.v1
         /// - Response is always 204 to prevent user enumeration
         /// - Email is sent only if the account exists and is unconfirmed
         /// </remarks>
-        [Authorize]
         [HttpPost("resend-confirmation-email")]
+        [Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Superadmin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [EnableRateLimiting("AuthPolicy")]

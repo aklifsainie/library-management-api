@@ -36,6 +36,7 @@ namespace library.management.infrastructure
             services.AddScoped<ICountryRepository, CountryRepository>();
             services.AddScoped<IBookRepository, BookRepository>();
             services.AddScoped<IBookLoanRepository, BookLoanRepository>();
+            services.AddScoped<IMemberRepository, MemberRepository>();
             services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
             // Audit Trail

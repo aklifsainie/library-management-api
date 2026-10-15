@@ -15,4 +15,4 @@ dotnet test .\library-management-system.sln --no-build --no-restore
 
 The Country example is `FullyQualifiedName~library.management.test.TestFeatures.CountryFeature.GetAllCountryQueryTest`; it is not a default check for unrelated changes. If no relevant focused test exists, report that limitation and run the affected project/solution checks instead. Restore first only when required. Build/test create local outputs and may use the network. Never use database-update commands as verification.
 
-Loan handler tests cover token-derived borrower identity, one-copy conflicts, ownership, Admin returns, and paging. Migration review checks the Book and Identity foreign keys and the filtered unique open-loan index. These tests do not apply migrations to a live database.
+Loan handler tests cover membership and Officer attribution, inactive membership, one-copy conflicts, return verification, and paging. Membership handler tests cover contact validation, normalization, and open-loan deactivation. Migration review checks the Member backfill, loan mapping, old Identity FK removal, and filtered unique open-loan index. These tests do not apply migrations to a live database.

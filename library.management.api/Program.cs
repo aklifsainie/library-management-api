@@ -100,9 +100,9 @@ namespace library.management.api
             var app = builder.Build();
             await app.Services.SeedRolesAsync();
 
-            if (args.Length == 2 && args[0] == "--bootstrap-superadmin")
+            if (args.Length == 3 && args[0] == "--bootstrap-superadmin")
             {
-                await app.Services.BootstrapFirstSuperadminAsync(args[1]);
+                await app.Services.BootstrapFirstSuperadminAsync(args[1], args[2]);
                 return;
             }
 

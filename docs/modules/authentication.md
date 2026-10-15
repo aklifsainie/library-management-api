@@ -6,12 +6,12 @@ Authentication owns account-state checks, password login, 2FA completion, JWT is
 
 ## Observed behavior
 
-- Password login rejects inactive/deleted users and uses `lockoutOnFailure`; the observed development configuration is three attempts and five minutes.
+- Password login rejects inactive/deleted users and users without a current staff role, and uses `lockoutOnFailure`; the observed development configuration is three attempts and five minutes.
 - Successful refresh rotates the token. Revoked-token reuse bulk-revokes active tokens; logout is non-failing for unusable supplied tokens.
 - Password reset updates the Identity security stamp. Account-state checking gives an unknown account a generic negative state.
 
 ## Risks and exceptions
 
-JWT validation checks user existence and lockout but not active/deleted state or security stamps; refresh similarly omits those checks. The 2FA completion handler requires current-user context although password login returns no token when 2FA is required. Refresh-cookie paths vary among actions. Forgot-password and resend-confirmation behavior conflicts with some enumeration-resistance comments. Transactional early returns in refresh/2FA require review.
+JWT validation checks user existence, active/deleted status, staff role, and lockout; refresh checks active/deleted status and staff role. Neither validates security stamps. The 2FA completion handler requires current-user context although password login returns no token when 2FA is required. Refresh-cookie paths vary among actions. Forgot-password and resend-confirmation behavior conflicts with some enumeration-resistance comments. Transactional early returns in refresh/2FA require review.
 
 Treat these as observed risks, not requirements. See the local `AGENTS.md` and [security guidance](../architecture/authentication-authorization.md).

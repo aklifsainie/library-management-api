@@ -55,7 +55,8 @@ namespace library.management.identity.Services
                 return Result.Fail<AuthenticationResponseVM>("Invalid email.");
 
             var user = await _userManager.FindByNameAsync(userNameOrEmail) ?? await _userManager.FindByEmailAsync(userNameOrEmail);
-            if (user == null)
+            if (user == null || !user.IsActive || user.IsDeleted ||
+                !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains))
             {
                 // Prevent user enumeration attacks
                 return Result.Ok(new AuthenticationResponseVM
@@ -92,6 +93,9 @@ namespace library.management.identity.Services
 
                 if (!user.IsActive || user.IsDeleted)
                     return Result.Fail<AuthenticationResponseVM>("User is not active.");
+
+                if (!(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains))
+                    return Result.Fail<AuthenticationResponseVM>("Invalid credentials.");
 
 
                 // Login 
@@ -215,7 +219,8 @@ namespace library.management.identity.Services
                     return Result.Fail("Expired refresh token.");
 
                 var user = await _userManager.FindByIdAsync(storedToken.UserId);
-                if (user == null)
+                if (user == null || !user.IsActive || user.IsDeleted ||
+                    !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains))
                     return Result.Fail("User not found.");
 
                 // Rotate token
@@ -262,6 +267,10 @@ namespace library.management.identity.Services
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
+                    return Result.Fail("User not found.");
+
+                if (!user.IsActive || user.IsDeleted ||
+                    !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains))
                     return Result.Fail("User not found.");
 
                 if (!user.TwoFactorEnabled)
@@ -377,7 +386,9 @@ namespace library.management.identity.Services
             var user = await _userManager.FindByEmailAsync(email);
 
             // Prevent user enumeration
-            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+            if (user == null || !user.IsActive || user.IsDeleted ||
+                !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains) ||
+                !await _userManager.IsEmailConfirmedAsync(user))
             {
                 return Result.Fail("Invalid email.");
             }
@@ -410,7 +421,9 @@ namespace library.management.identity.Services
             var user = await _userManager.FindByIdAsync(userId);
 
             // Prevent user enumeration
-            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+            if (user == null || !user.IsActive || user.IsDeleted ||
+                !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains) ||
+                !await _userManager.IsEmailConfirmedAsync(user))
             {
                 return Result.Fail("Invalid reset request.");
             }

@@ -1,6 +1,6 @@
 # Solution Overview
 
-AHIS API Template is a .NET 8 Web API template for account configuration, JWT/refresh-token authentication, authenticator 2FA, external API-client keys, Country reference data, and auditing.
+AHIS API Template is a .NET 8 Web API template for staff accounts, JWT/refresh-token authentication, authenticator 2FA, external API-client keys, Country reference data, books, memberships, lending, and auditing.
 
 It uses layers plus feature folders, not a strict textbook architecture. The custom mediator dispatches most Application requests and invokes registered FluentValidation validators. Persistence and orchestration vary by module:
 
