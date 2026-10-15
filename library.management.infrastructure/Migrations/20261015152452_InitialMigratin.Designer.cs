@@ -12,8 +12,8 @@ using library.management.infrastructure.Contexts;
 namespace library.management.infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261015143247_ReplaceIdentityMembersWithMemberships")]
-    partial class ReplaceIdentityMembersWithMemberships
+    [Migration("20261015152452_InitialMigratin")]
+    partial class InitialMigratin
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
