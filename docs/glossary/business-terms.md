@@ -1,6 +1,8 @@
 # Business Terms
 
-- **Account**: An `ApplicationUser` and its registration, profile, email, password, and 2FA configuration.
+- **Account**: A staff `ApplicationUser` and its provisioning, profile, email, password, and 2FA configuration.
+- **Member**: An application-owned library membership; it has no Identity login.
+- **Officer**: A staff Identity role that manages memberships and counter lending.
 - **Account configured**: `ApplicationUser.IsAccountConfigured`; currently set when profile update requests mark configuration complete.
 - **Authentication**: Credential and token workflows that establish or renew a user's identity.
 - **Access token**: Short-lived JWT returned in the response body after completed authentication.

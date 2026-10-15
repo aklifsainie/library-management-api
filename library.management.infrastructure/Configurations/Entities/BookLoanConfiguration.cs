@@ -10,13 +10,16 @@ public sealed class BookLoanConfiguration : IEntityTypeConfiguration<BookLoan>
     {
         builder.ToTable("BookLoan");
         builder.HasKey(loan => loan.Id);
-        builder.Property(loan => loan.UserId).HasMaxLength(450).IsRequired();
+        builder.Property(loan => loan.CheckoutOfficerUserId).HasMaxLength(450);
+        builder.Property(loan => loan.ReturnOfficerUserId).HasMaxLength(450);
         builder.Property(loan => loan.BorrowedAtUtc).HasColumnType("datetime2").IsRequired();
         builder.Property(loan => loan.ReturnedAtUtc).HasColumnType("datetime2");
         builder.HasOne(loan => loan.Book).WithMany().HasForeignKey(loan => loan.BookId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(loan => loan.Member).WithMany().HasForeignKey(loan => loan.MemberId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(loan => loan.BookId).IsUnique().HasFilter("[ReturnedAtUtc] IS NULL")
             .HasDatabaseName("UX_BookLoan_OpenBook");
-        builder.HasIndex(loan => new { loan.UserId, loan.BorrowedAtUtc });
+        builder.HasIndex(loan => new { loan.MemberId, loan.BorrowedAtUtc });
     }
 }

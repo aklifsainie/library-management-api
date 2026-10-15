@@ -12,8 +12,8 @@ using library.management.infrastructure.Contexts;
 namespace library.management.infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20261011011730_AddBookLoans")]
-    partial class AddBookLoans
+    [Migration("20261015152452_InitialMigratin")]
+    partial class InitialMigratin
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -342,11 +342,18 @@ namespace library.management.infrastructure.Migrations
                     b.Property<DateTime>("BorrowedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CheckoutOfficerUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MemberId")
+                        .HasColumnType("int");
 
                     b.Property<string>("RegisterBy")
                         .HasColumnType("nvarchar(max)");
@@ -358,6 +365,10 @@ namespace library.management.infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("ReturnOfficerUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime?>("ReturnedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -367,11 +378,6 @@ namespace library.management.infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BookId")
@@ -379,7 +385,7 @@ namespace library.management.infrastructure.Migrations
                         .HasDatabaseName("UX_BookLoan_OpenBook")
                         .HasFilter("[ReturnedAtUtc] IS NULL");
 
-                    b.HasIndex("UserId", "BorrowedAtUtc");
+                    b.HasIndex("MemberId", "BorrowedAtUtc");
 
                     b.ToTable("BookLoan", (string)null);
                 });
@@ -463,6 +469,70 @@ namespace library.management.infrastructure.Migrations
                     b.ToTable("Country", (string)null);
                 });
 
+            modelBuilder.Entity("library.management.domain.Models.Entities.Member", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LegacyIdentityUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("MemberNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("RegisterBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RegisterDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Remarks")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LegacyIdentityUserId")
+                        .IsUnique()
+                        .HasFilter("[LegacyIdentityUserId] IS NOT NULL");
+
+                    b.HasIndex("MemberNumber")
+                        .IsUnique();
+
+                    b.ToTable("Member", (string)null);
+                });
+
             modelBuilder.Entity("library.management.domain.Models.Entities.ApiKey.ApiClientKey", b =>
                 {
                     b.HasOne("library.management.domain.Models.Entities.ApiKey.ApiClient", "ApiClient")
@@ -493,7 +563,15 @@ namespace library.management.infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("library.management.domain.Models.Entities.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Book");
+
+                    b.Navigation("Member");
                 });
 
             modelBuilder.Entity("library.management.domain.Models.Entities.ApiKey.ApiClient", b =>

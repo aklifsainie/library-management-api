@@ -6,11 +6,10 @@ using library.management.application.Shared.Mediator;
 using library.management.domain.Models.Entities;
 using library.management.domain.Models.ViewModels.LoanVM;
 using library.management.domain.SharedKernel;
-using library.management.identity;
 
 namespace library.management.application.Features.LoanFeatures.Commands;
 
-public sealed record ReturnBookCommand(int Id) : IRequest<Result<LoanVM>>;
+public sealed record ReturnBookCommand(int Id, int MemberId, int BookId) : IRequest<Result<LoanVM>>;
 
 public sealed class ReturnBookCommandHandler : IRequestHandler<ReturnBookCommand, Result<LoanVM>>
 {
@@ -36,12 +35,20 @@ public sealed class ReturnBookCommandHandler : IRequestHandler<ReturnBookCommand
         }
 
         var loan = await _loans.GetByIdAsync(command.Id, asNoTracking: false, cancellationToken);
-        if (loan is null || (_currentUser.UserRole == UserRoles.Member && loan.UserId != _currentUser.UserId))
+        if (loan is null)
             return Result.Fail<LoanVM>(new EntityNotFoundError(nameof(BookLoan), command.Id));
+        if (command.MemberId <= 0 || command.BookId <= 0)
+            return Result.Fail<LoanVM>(new ValidationError("Member and book IDs are required to verify the return."));
+        if (loan.MemberId != command.MemberId || loan.BookId != command.BookId)
+            return Result.Fail<LoanVM>(new ConflictError("The member and book do not match this loan."));
         if (loan.ReturnedAtUtc is not null)
             return Result.Fail<LoanVM>(new ConflictError("This loan has already been returned."));
 
+        if (string.IsNullOrWhiteSpace(_currentUser.UserId))
+            return Result.Fail<LoanVM>(new ValidationError("Officer identity is unavailable."));
+
         loan.ReturnedAtUtc = DateTime.UtcNow;
+        loan.ReturnOfficerUserId = _currentUser.UserId;
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Ok(loan.ToViewModel()).WithSuccess("Book returned successfully.");
     }

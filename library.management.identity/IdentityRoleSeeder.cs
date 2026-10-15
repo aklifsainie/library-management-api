@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using library.management.identity.Contexts;
 using library.management.identity.Models.Entities;
+using library.management.identity.Interfaces;
 
 namespace library.management.identity;
 
@@ -24,11 +25,12 @@ public static class IdentityRoleSeeder
         }
     }
 
-    public static async Task BootstrapFirstSuperadminAsync(this IServiceProvider services, string email)
+    public static async Task BootstrapFirstSuperadminAsync(this IServiceProvider services, string email, string callbackBaseUrl)
     {
         using var scope = services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var context = scope.ServiceProvider.GetRequiredService<IdentityContext>();
+        var accountService = scope.ServiceProvider.GetRequiredService<IAccountService>();
 
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("A user email is required.", nameof(email));
@@ -38,9 +40,17 @@ public static class IdentityRoleSeeder
             throw new InvalidOperationException("A Superadmin already exists.");
 
         var user = await userManager.FindByEmailAsync(email);
-        if (user == null || !user.IsActive || user.IsDeleted || !user.EmailConfirmed ||
+        var newlyCreated = user is null;
+        if (user is null)
+        {
+            user = new ApplicationUser { Email = email, UserName = email, IsActive = true, CreatedAt = DateTime.UtcNow };
+            var created = await userManager.CreateAsync(user);
+            if (!created.Succeeded)
+                throw new InvalidOperationException("Could not create the initial Superadmin account.");
+        }
+        else if (!user.IsActive || user.IsDeleted || !user.EmailConfirmed ||
             !await userManager.HasPasswordAsync(user))
-            throw new InvalidOperationException("The account must be active, email confirmed, and password configured.");
+            throw new InvalidOperationException("An existing account must be active, email confirmed, and password configured.");
 
         var currentRoles = await userManager.GetRolesAsync(user);
         if (currentRoles.Count != 0)
@@ -54,6 +64,12 @@ public static class IdentityRoleSeeder
         if (!added.Succeeded)
             throw new InvalidOperationException("Could not assign the Superadmin role.");
 
+        if (newlyCreated)
+        {
+            var sent = await accountService.SendEmailConfirmationAsync(user, callbackBaseUrl);
+            if (sent.IsFailed)
+                throw new InvalidOperationException("Superadmin invitation email delivery failed.");
+        }
         await transaction.CommitAsync();
     }
 }

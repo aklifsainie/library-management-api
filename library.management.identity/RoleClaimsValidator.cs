@@ -16,6 +16,7 @@ public static class RoleClaimsValidator
         var currentRoles = (await userManager.GetRolesAsync(user))
             .ToHashSet(StringComparer.Ordinal);
 
-        return tokenRoles.SetEquals(currentRoles);
+        return user.IsActive && !user.IsDeleted &&
+            currentRoles.Any(UserRoles.All.Contains) && tokenRoles.SetEquals(currentRoles);
     }
 }

@@ -8,11 +8,11 @@ namespace library.management.identity.Interfaces
 {
     public interface IAccountService
     {
-        Task<Result<string>> RegisterAsync(string email, string userName, string callbackBaseUrl, CancellationToken cancellationToken);
+        Task<Result<string>> RegisterAsync(string email, string userName, string role, string callbackBaseUrl, CancellationToken cancellationToken);
         Task<Result> SetRoleAsync(string actorUserId, string targetUserId, string role, CancellationToken cancellationToken);
         Task<Result> SendEmailConfirmationAsync(ApplicationUser user, string callbackBaseUrl);
         Task<Result> ConfirmEmailAsync(string userId, string encodedToken);
-        Task<Result> SetPasswordFirstTimeAsync(string userId, string password);
+        Task<Result> SetPasswordFirstTimeAsync(string userId, string password, string encodedConfirmationToken);
         Task<Result<ProfileUpdateDto>> UpdateProfileAsync(string userId, ProfileUpdateDto dto);
         Task<Result<AuthenticatorSetupDto>> GenerateAuthenticatorSetupAsync(string userId);
         Task<Result<IEnumerable<string>>> EnableAuthenticatorAsync(string userId, string verificationCode);
