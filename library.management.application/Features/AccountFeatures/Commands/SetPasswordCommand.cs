@@ -13,6 +13,9 @@ namespace library.management.application.Features.AccountFeatures.Commands
 
         [Required]
         public string Password { get; set; } = null!;
+
+        [Required]
+        public string ConfirmationToken { get; set; } = null!;
     }
 
 
@@ -35,7 +38,7 @@ namespace library.management.application.Features.AccountFeatures.Commands
             );
 
             var result = await _accountService
-                .SetPasswordFirstTimeAsync(request.UserId, request.Password);
+                .SetPasswordFirstTimeAsync(request.UserId, request.Password, request.ConfirmationToken);
 
             if (!result.IsSuccess)
             {

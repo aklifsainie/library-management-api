@@ -14,6 +14,9 @@ namespace library.management.application.Features.AccountFeatures.Commands
         [Required]
         public string UserName { get; set; } = null!;
 
+        [Required]
+        public string Role { get; set; } = null!;
+
         // Client should provide a base url for email callback (frontend)
         [Required]
         public string CallbackBaseUrl { get; set; } = null!;
@@ -34,7 +37,7 @@ namespace library.management.application.Features.AccountFeatures.Commands
         public async Task<Result> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Registering user {Email}", request.Email);
-            var result = await _accountService.RegisterAsync(request.Email, request.UserName, request.CallbackBaseUrl, cancellationToken);
+            var result = await _accountService.RegisterAsync(request.Email, request.UserName, request.Role, request.CallbackBaseUrl, cancellationToken);
             if (!result.IsSuccess)
             {
                 _logger.LogWarning($"Failed to register user {request.Email}: {result.Errors.FirstOrDefault()?.Message}");

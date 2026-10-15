@@ -14,7 +14,7 @@ namespace library.management.api.Controllers.v1;
 
 [ApiController]
 [Route("api/v1/loans")]
-[Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Member + "," + UserRoles.Admin)]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = UserRoles.Officer)]
 [EnableRateLimiting("ApiPolicy")]
 public sealed class LoansController : BaseApiController
 {
@@ -22,9 +22,8 @@ public sealed class LoansController : BaseApiController
 
     public LoansController(IMediator mediator) => _mediator = mediator;
 
-    /// <summary>Borrow one available book for the signed-in member.</summary>
+    /// <summary>Approve checkout of one available book to an active membership.</summary>
     [HttpPost]
-    [Authorize(Roles = UserRoles.Member)]
     [ProducesResponseType(typeof(ResponseDto<LoanVM>), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,14 +36,14 @@ public sealed class LoansController : BaseApiController
             new ResponseDto<LoanVM>(result.Value, "Book borrowed successfully."));
     }
 
-    /// <summary>List loans visible to the signed-in member or Admin.</summary>
+    /// <summary>List loan history for Officers.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(ResponseDto<PaginatedResult<LoanVM>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default) =>
         ToActionResult(await _mediator.Send(new GetLoansQuery(pageNumber, pageSize), cancellationToken));
 
-    /// <summary>Get one loan visible to the signed-in member or Admin.</summary>
+    /// <summary>Get one loan for an Officer.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ResponseDto<LoanVM>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -52,12 +51,14 @@ public sealed class LoansController : BaseApiController
         CancellationToken cancellationToken) =>
         ToActionResult(await _mediator.Send(new GetLoanByIdQuery(id), cancellationToken));
 
-    /// <summary>Return an active loan owned by the member, or process a return as Admin.</summary>
+    /// <summary>Verify member and book at the counter, then record the return.</summary>
     [HttpPost("{id:int}/return")]
     [ProducesResponseType(typeof(ResponseDto<LoanVM>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Return([FromRoute, Range(1, int.MaxValue)] int id,
-        CancellationToken cancellationToken) =>
-        ToActionResult(await _mediator.Send(new ReturnBookCommand(id), cancellationToken));
+        [FromBody] ReturnBookRequest request, CancellationToken cancellationToken) =>
+        ToActionResult(await _mediator.Send(new ReturnBookCommand(id, request.MemberId, request.BookId), cancellationToken));
 }
+
+public sealed record ReturnBookRequest(int MemberId, int BookId);

@@ -44,8 +44,10 @@ namespace library.management.identity.Services
         }
 
         // 1. Register new user (no password yet)
-        public async Task<Result<string>> RegisterAsync(string email, string userName, string callbackBaseUrl, CancellationToken cancellationToken)
+        public async Task<Result<string>> RegisterAsync(string email, string userName, string role, string callbackBaseUrl, CancellationToken cancellationToken)
         {
+            if (role != UserRoles.Officer && role != UserRoles.Admin)
+                return Result.Fail<string>("Only Officer and Admin staff accounts can be created.");
             try
             {
                 var existing = await _userManager.FindByEmailAsync(email);
@@ -74,23 +76,23 @@ namespace library.management.identity.Services
                     return Result.Fail<string>(errors);
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(user, UserRoles.Member);
+                var roleResult = await _userManager.AddToRoleAsync(user, role);
                 if (!roleResult.Succeeded)
                 {
-                    _logger.LogError("Could not assign Member role to new user {UserId}: {Errors}",
+                    _logger.LogError("Could not assign staff role to new user {UserId}: {Errors}",
                         user.Id, string.Join(';', roleResult.Errors.Select(error => error.Description)));
                     return Result.Fail<string>("Registration could not be completed.");
                 }
-
-                await transaction.CommitAsync(cancellationToken);
 
                 // Send confirmation email
                 var emailSendResult = await SendEmailConfirmationAsync(user, callbackBaseUrl);
                 if (!emailSendResult.IsSuccess)
                 {
                     _logger.LogWarning("Failed to send confirmation email to {Email}", email);
-                    return Result.Fail<string>("User created but failed to send confirmation email.");
+                    return Result.Fail<string>("Failed to send staff invitation email.");
                 }
+
+                await transaction.CommitAsync(cancellationToken);
 
                 return Result.Ok(user.Id.ToString());
             }
@@ -107,7 +109,7 @@ namespace library.management.identity.Services
 
         public async Task<Result> SetRoleAsync(string actorUserId, string targetUserId, string role, CancellationToken cancellationToken)
         {
-            if (role != UserRoles.Member && role != UserRoles.Admin && role != UserRoles.Superadmin)
+            if (role != UserRoles.Officer && role != UserRoles.Admin && role != UserRoles.Superadmin)
                 return Result.Fail("Invalid role.");
 
             if (actorUserId == targetUserId)
@@ -122,7 +124,7 @@ namespace library.management.identity.Services
             if (target == null || target.IsDeleted)
                 return Result.Fail("User not found.");
 
-            if ((role == UserRoles.Admin || role == UserRoles.Superadmin) &&
+            if ((role == UserRoles.Officer || role == UserRoles.Admin || role == UserRoles.Superadmin) &&
                 (!target.IsActive || !target.EmailConfirmed || !await _userManager.HasPasswordAsync(target)))
                 return Result.Fail("Privileged roles require an active account with a confirmed email and password.");
 
@@ -214,13 +216,25 @@ namespace library.management.identity.Services
         }
 
         // 4. Set password on first login (user has no password yet)
-        public async Task<Result> SetPasswordFirstTimeAsync(string userId, string password)
+        public async Task<Result> SetPasswordFirstTimeAsync(string userId, string password, string encodedConfirmationToken)
         {
             try
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                     return Result.Fail("User not found.");
+
+                var roles = await _userManager.GetRolesAsync(user);
+                if (!user.IsActive || user.IsDeleted || !user.EmailConfirmed ||
+                    !roles.Any(UserRoles.All.Contains))
+                    return Result.Fail("Account is not eligible for password setup.");
+
+                string token;
+                try { token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(encodedConfirmationToken)); }
+                catch (FormatException) { return Result.Fail("Invalid setup token."); }
+                var verified = await _userManager.VerifyUserTokenAsync(user,
+                    _userManager.Options.Tokens.EmailConfirmationTokenProvider, "EmailConfirmation", token);
+                if (!verified) return Result.Fail("Invalid or expired setup token.");
 
                 // If user already has password, prevent using this method
                 var hasPassword = await _userManager.HasPasswordAsync(user);
@@ -422,7 +436,8 @@ namespace library.management.identity.Services
                 var user = await _userManager.FindByEmailAsync(email);
 
 
-                if (user == null)
+                if (user == null || !user.IsActive || user.IsDeleted ||
+                    !(await _userManager.GetRolesAsync(user)).Any(UserRoles.All.Contains))
                 {
                     return Result.Fail("Fail to re-send confirmation email");
                 }

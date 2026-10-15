@@ -3,6 +3,7 @@
 `AuditSaveChangesInterceptor` inspects added, modified, and deleted `IAuditableEntity` instances and adds `AuditLog` rows to the same `ApplicationDbContext`; automatic audit data therefore participates in the database save transaction. It records changed scalar properties for modifications, masks `[SensitiveData]`, and excludes `AuditLog` itself.
 
 Choose auditable entities deliberately. Their keys must be available when `SavingChanges` runs: Country uses a database-generated integer key, so create-audit IDs can be pre-generation values. A logical Country delete is an EF modification and is currently recorded as an update.
+Member email and phone are marked `[SensitiveData]` and are masked in automatic audit values. Member and BookLoan also use database-generated integer keys, so create-audit IDs can likewise be pre-generation values. Membership deactivation is an EF modification.
 
 `IAuditLogger` records reads and other events that EF tracking cannot represent. It captures request/actor context and suppresses non-cancellation persistence failures, so explicit auditing is attempted rather than guaranteed. Country GetAll and GetById are current examples.
 

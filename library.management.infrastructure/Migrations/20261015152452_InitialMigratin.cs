@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace library.management.infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialMigratin : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,6 +68,28 @@ namespace library.management.infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Book",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Author = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Isbn = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsDelete = table.Column<bool>(type: "bit", nullable: false),
+                    RegisterBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RegisterDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    Remarks = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Book", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Country",
                 columns: table => new
                 {
@@ -90,6 +112,30 @@ namespace library.management.infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Country", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Member",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MemberNumber = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
+                    LegacyIdentityUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsDelete = table.Column<bool>(type: "bit", nullable: false),
+                    RegisterBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RegisterDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    Remarks = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Member", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -142,6 +188,43 @@ namespace library.management.infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "BookLoan",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookId = table.Column<int>(type: "int", nullable: false),
+                    MemberId = table.Column<int>(type: "int", nullable: false),
+                    CheckoutOfficerUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    ReturnOfficerUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    BorrowedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReturnedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsDelete = table.Column<bool>(type: "bit", nullable: false),
+                    RegisterBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RegisterDate = table.Column<DateTime>(type: "datetime", nullable: false),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime", nullable: true),
+                    Remarks = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BookLoan", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BookLoan_Book_BookId",
+                        column: x => x.BookId,
+                        principalTable: "Book",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_BookLoan_Member_MemberId",
+                        column: x => x.MemberId,
+                        principalTable: "Member",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_ApiClientKeys_ApiClientId",
                 table: "ApiClientKeys",
@@ -186,6 +269,18 @@ namespace library.management.infrastructure.Migrations
                 columns: new[] { "UserId", "TimestampUtc" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BookLoan_MemberId_BorrowedAtUtc",
+                table: "BookLoan",
+                columns: new[] { "MemberId", "BorrowedAtUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "UX_BookLoan_OpenBook",
+                table: "BookLoan",
+                column: "BookId",
+                unique: true,
+                filter: "[ReturnedAtUtc] IS NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Country_CountryCode2",
                 table: "Country",
                 column: "CountryCode2",
@@ -208,6 +303,19 @@ namespace library.management.infrastructure.Migrations
                 table: "Country",
                 column: "CountryIsoCode",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Member_LegacyIdentityUserId",
+                table: "Member",
+                column: "LegacyIdentityUserId",
+                unique: true,
+                filter: "[LegacyIdentityUserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Member_MemberNumber",
+                table: "Member",
+                column: "MemberNumber",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -223,10 +331,19 @@ namespace library.management.infrastructure.Migrations
                 name: "AuditLog");
 
             migrationBuilder.DropTable(
+                name: "BookLoan");
+
+            migrationBuilder.DropTable(
                 name: "Country");
 
             migrationBuilder.DropTable(
                 name: "ApiClients");
+
+            migrationBuilder.DropTable(
+                name: "Book");
+
+            migrationBuilder.DropTable(
+                name: "Member");
         }
     }
 }

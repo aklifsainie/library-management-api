@@ -9,7 +9,9 @@ internal static class LoanMapping
     {
         Id = loan.Id,
         BookId = loan.BookId,
-        UserId = loan.UserId,
+        MemberId = loan.MemberId,
+        CheckoutOfficerUserId = loan.CheckoutOfficerUserId,
+        ReturnOfficerUserId = loan.ReturnOfficerUserId,
         BorrowedAtUtc = loan.BorrowedAtUtc,
         ReturnedAtUtc = loan.ReturnedAtUtc
     };

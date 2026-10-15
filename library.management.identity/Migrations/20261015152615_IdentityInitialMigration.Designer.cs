@@ -12,7 +12,7 @@ using library.management.identity.Contexts;
 namespace library.management.identity.Migrations
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20260824144538_IdentityInitialMigration")]
+    [Migration("20261015152615_IdentityInitialMigration")]
     partial class IdentityInitialMigration
     {
         /// <inheritdoc />

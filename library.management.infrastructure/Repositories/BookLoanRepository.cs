@@ -17,6 +17,10 @@ public sealed class BookLoanRepository : IBookLoanRepository
         _context.BookLoans.AsNoTracking().AnyAsync(loan => loan.BookId == bookId && loan.ReturnedAtUtc == null,
             cancellationToken);
 
+    public Task<bool> HasOpenLoanForMemberAsync(int memberId, CancellationToken cancellationToken) =>
+        _context.BookLoans.AsNoTracking().AnyAsync(loan => loan.MemberId == memberId && loan.ReturnedAtUtc == null,
+            cancellationToken);
+
     public async Task<bool> TryBorrowAsync(BookLoan loan, CancellationToken cancellationToken)
     {
         await _context.BookLoans.AddAsync(loan, cancellationToken);
@@ -40,11 +44,10 @@ public sealed class BookLoanRepository : IBookLoanRepository
         return query.FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PaginatedResult<BookLoan>> GetPageAsync(string? userId, int pageNumber, int pageSize,
+    public async Task<PaginatedResult<BookLoan>> GetPageAsync(int pageNumber, int pageSize,
         CancellationToken cancellationToken)
     {
         IQueryable<BookLoan> query = _context.BookLoans.AsNoTracking();
-        if (userId is not null) query = query.Where(loan => loan.UserId == userId);
         var count = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(loan => loan.BorrowedAtUtc)
             .ThenByDescending(loan => loan.Id)

@@ -1,6 +1,6 @@
-# 🚀 Production-Ready Authentication Web API (.NET 8)
+# Library Management Web API (.NET 8)
 
-A **secure and production-ready Web API** built with **.NET 8**, focused on implementing modern **account management and authentication best practices**.
+A .NET 8 Web API for staff accounts, book catalog management, library memberships, counter lending, and authentication.
 
 This repository provides a **minimum yet complete set of endpoints** required for real-world applications, with security hardening applied from day one.
 
@@ -12,7 +12,9 @@ This repository provides a **minimum yet complete set of endpoints** required fo
 * **JWT Authentication** (Access Token + Refresh Token)
 * **Refresh Token Rotation** for enhanced security
 * **Two-Factor Authentication (2FA)** using authenticator apps (TOTP)
-* **Account & Authentication Endpoints** ready for production use
+* **Staff account and authentication endpoints**
+* **Officer-managed memberships and counter lending**
+* **Admin-managed book catalog**
 * **Rate Limiting** to protect sensitive endpoints
 * Designed with **OWASP security best practices** in mind
 
@@ -22,7 +24,7 @@ This repository provides a **minimum yet complete set of endpoints** required fo
 
 This project is intended to be used as:
 
-* A **starter template** for production-ready Web APIs
+* A **starter template** for library Web APIs
 * A **reference implementation** for secure authentication flows
 * A **learning resource** for developers building real-world APIs with .NET
 
@@ -65,7 +67,7 @@ This project is intended to be used as:
 
 ### Account
 
-* Register
+* Superadmin-created Officer and Admin accounts
 * Confirm Email
 * Set / Change Password
 * Update Profile
